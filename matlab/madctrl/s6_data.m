@@ -43,12 +43,14 @@ P_display_dt = 40e-3; % sample time of display
 %% plant
 k = 2.51; % plant gain [ m/s ]
 T = 316e-3; % plant time constant [ s ]
-Gs = tf(k, [ T , 1 ]);
+% Gs = tf(k, [ T , 1 ]);
 
 %% controller parameters
 Tw = 1000e-3; % close-loop time constant [ s ]
-Ti = T; % integral time constant by dynamic compensation [ s ]
-kp = T / (Tw * k); % controller gain [ s/m ]
+P_kr = 0.3345;
+P_Ti = 0.2474;
+% Ti = T; % integral time constant by dynamic compensation [ s ]
+% kp = T / (Tw * k); % controller gain [ s/m ]
 % Gr = tf(kp * [Ti, 1 ], [ Ti , 0]);
 
 %% open-loop dynamics
@@ -58,11 +60,10 @@ kp = T / (Tw * k); % controller gain [ s/m ]
 % Gw = G0 / (1 + G0);
 
 %% parameters
+P_u_slow = 0.1;
 delta_n = 0.7;
 v_max = 1;
-P_kr = 0.3345;
 P_Tt = 0.1;
-P_Ti = 0.2474;
 P_T = T;
 un_max = 1;
 un_min = -1;
@@ -95,6 +96,15 @@ track = mbc_clothoid_create(track, P_a, pi/4, P_width, 0);
 track = mbc_clothoid_create(track, P_a, pi/4, P_width, 1);
 track = mbc_track_display(track, 0.1, [ 0 a1total 0 a2total ]);
 path = track.center;
+
+%% Path for Lap Statistics
+lappath = track.center;
+P_lap_breakslen = uint32(length(lappath.points));
+P_lap_points = zeros(SPLINE.Elements(2).Dimensions);
+P_lap_points(:,1:length(lappath.points)) = lappath.points;
+P_lap_coefs = zeros(SPLINE.Elements(3).Dimensions);
+P_lap_coefs(1:length(lappath.pp.coefs),:) = lappath.pp.coefs;
+P_lap_segments = uint32(zeros(SPLINE.Elements(4).Dimensions));
 
 %% Workspace variables for reference track generation in Simulink
 P_w_breakslen = uint32(length(path.points));
