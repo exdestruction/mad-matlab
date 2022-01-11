@@ -49,27 +49,23 @@ Gs = tf(k, [ T , 1 ]);
 Tw = 1000e-3; % close-loop time constant [ s ]
 Ti = T; % integral time constant by dynamic compensation [ s ]
 kp = T / (Tw * k); % controller gain [ s/m ]
-Gr = tf(kp * [Ti, 1 ], [ Ti , 0]);
+% Gr = tf(kp * [Ti, 1 ], [ Ti , 0]);
 
 %% open-loop dynamics
-G0 = minreal (Gr * Gs);
+% G0 = minreal (Gr * Gs);
 
 %% closed-loop dynamics
-Gw = G0 / (1 + G0);
-
+% Gw = G0 / (1 + G0);
 
 %% parameters
 delta_n = 0.7;
 v_max = 1;
 P_kr = 0.3345;
-P_Ta = 0.1;
+P_Tt = 0.1;
 P_Ti = 0.2474;
-P_Tt = T;
+P_T = T;
 un_max = 1;
 un_min = -1;
-
-
-
 
 %% Lateral Controller
 %% TODO
@@ -82,18 +78,21 @@ a2boundary = 0.05; % margin [ m ]
 a1 = a1total - 2 * a1boundary; % total surface width [ m ]
 a2 = a2total - 2 * a2boundary; % total surface height [ m ]
 P_width = 0.25 * a2; % track P_width [ m ]
+P_a = 8;
 
 track = mbc_track_create(a1boundary + P_width, a2boundary + 0.5 * P_width, 0);
 track = mbc_straight_create(track, a1 - 2 * P_width, P_width);
-track = mbc_circle_create(track, 0.5 * P_width, pi, P_width);
-track = mbc_straight_create(track, a1 - 3 * P_width, P_width);
-track = mbc_circle_create(track, 0.5 * P_width, -pi, P_width);
-track = mbc_straight_create(track, a1 - 3 * P_width, P_width);
-track = mbc_circle_create(track, 0.5 * P_width, pi, P_width);
+track = mbc_clothoid_create(track, P_a, pi/4, P_width, 0);
+track = mbc_clothoid_create(track, P_a, pi/4, P_width, 1);
+track = mbc_straight_create(track, a1 - 4 * P_width, P_width);
+track = mbc_clothoid_create(track, P_a, pi/4, P_width, 0);
+track = mbc_clothoid_create(track, P_a, pi/4, P_width, 1);
 track = mbc_straight_create(track, a1 - 2 * P_width, P_width);
-track = mbc_circle_create(track, 0.5 * P_width, 0.5 * pi, P_width);
-track = mbc_straight_create(track, a2 - 2 * P_width, P_width);
-track = mbc_circle_create(track, 0.5 * P_width, 0.5 * pi, P_width);
+track = mbc_clothoid_create(track, P_a, pi/4, P_width, 0);
+track = mbc_clothoid_create(track, P_a, pi/4, P_width, 1);
+track = mbc_straight_create(track, a1 - 4 * P_width, P_width);
+track = mbc_clothoid_create(track, P_a, pi/4, P_width, 0);
+track = mbc_clothoid_create(track, P_a, pi/4, P_width, 1);
 track = mbc_track_display(track, 0.1, [ 0 a1total 0 a2total ]);
 path = track.center;
 
