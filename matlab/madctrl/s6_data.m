@@ -23,7 +23,7 @@
 
 
 %% Clear workspace
-clear;
+clear all;
 
 %% Global Variables
 global P_dt P_display_dt;
@@ -40,56 +40,62 @@ P_display_dt = 40e-3; % sample time of display
 %e6_data;
 
 %% Speed Controller
-Ku = 2.51;
-Tt = 0.1;
-T = 0.3;
-Ti = 0.2474;
-Kr = 0.3445;
+%% plant
+k = 2.51; % plant gain [ m/s ]
+T = 316e-3; % plant time constant [ s ]
+Gs = tf(k, [ T , 1 ]);
+
+%% controller parameters
+Tw = 1000e-3; % close-loop time constant [ s ]
+Ti = T; % integral time constant by dynamic compensation [ s ]
+kp = T / (Tw * k); % controller gain [ s/m ]
+Gr = tf(kp * [Ti, 1 ], [ Ti , 0]);
+
+%% open-loop dynamics
+G0 = minreal (Gr * Gs);
+
+%% closed-loop dynamics
+Gw = G0 / (1 + G0);
+
+
+%% parameters
+delta_n = 0.7;
+v_max = 1;
+P_kr = 0.3345;
+P_Ta = 0.1;
+P_Ti = 0.2474;
+P_Tt = T;
+un_max = 1;
+un_min = -1;
+
+
+
+
 %% Lateral Controller
 %% TODO
 
 %% Create Race Track
-width_total = 2.7; % total surface width [ m ]
-height_total = 1.8; % total surface height [ m ]
-boundary = 0.05; % margin [ m ]
-a = 8; % clothoid coefficient
-% a2boundary = 0.05; % margin [ m ]
-width = width_total - 2 * boundary; % total surface width [ m ]
-height = height_total - 2 * boundary; % total surface height [ m ]
-track_width = 0.2 * height; % track P_width [ m ]
+a1total = 2.7; % total surface width [ m ]
+a2total = 1.8; % total surface height [ m ]
+a1boundary = 0.05; % margin [ m ]
+a2boundary = 0.05; % margin [ m ]
+a1 = a1total - 2 * a1boundary; % total surface width [ m ]
+a2 = a2total - 2 * a2boundary; % total surface height [ m ]
+P_width = 0.25 * a2; % track P_width [ m ]
 
-s = [0.3 0.9]; % track starting point [ m, m ]
-psi = -pi/2;    % track starting orientention angle [ rad ]
-
-% track = mbc_track_create(a1boundary + P_width, a2boundary + 0.5 * P_width, 0);
-% track = mbc_straight_create(track, a1 - 2 * P_width, P_width);
-% track = mbc_circle_create(track, 0.5 * P_width, pi, P_width);
-% track = mbc_straight_create(track, a1 - 3 * P_width, P_width);
-% track = mbc_circle_create(track, 0.5 * P_width, -pi, P_width);
-% track = mbc_straight_create(track, a1 - 3 * P_width, P_width);
-% track = mbc_circle_create(track, 0.5 * P_width, pi, P_width);
-% track = mbc_straight_create(track, a1 - 2 * P_width, P_width);
-% track = mbc_circle_create(track, 0.5 * P_width, 0.5 * pi, P_width);
-% track = mbc_straight_create(track, a2 - 2 * P_width, P_width);
-% track = mbc_circle_create(track, 0.5 * P_width, 0.5 * pi, P_width);
-
-track = mbc_track_create(s(1), s(2), psi);
-
-track = mbc_straight_create(track, height/4, track_width);
-track = mbc_clothoid_create(track, a, pi/4, track_width, 0);
-track = mbc_clothoid_create(track, a, pi/4, track_width, 1);
-% track = mbc_clothoid_create(track, a, pi/4, track_width, 1);
-track = mbc_clothoid_create(track, a, -pi/2, track_width, 0);
-track = mbc_clothoid_create(track, a, -pi/2, track_width, 1);
-% track = mbc_straight_create(track, height/4, track_width);
-% track = mbc_clothoid_create(track, a, -pi/4, track_width, 0);
-
-
-track = mbc_track_display(track, 0.1, [ 0 width_total 0 height_total ]);
+track = mbc_track_create(a1boundary + P_width, a2boundary + 0.5 * P_width, 0);
+track = mbc_straight_create(track, a1 - 2 * P_width, P_width);
+track = mbc_circle_create(track, 0.5 * P_width, pi, P_width);
+track = mbc_straight_create(track, a1 - 3 * P_width, P_width);
+track = mbc_circle_create(track, 0.5 * P_width, -pi, P_width);
+track = mbc_straight_create(track, a1 - 3 * P_width, P_width);
+track = mbc_circle_create(track, 0.5 * P_width, pi, P_width);
+track = mbc_straight_create(track, a1 - 2 * P_width, P_width);
+track = mbc_circle_create(track, 0.5 * P_width, 0.5 * pi, P_width);
+track = mbc_straight_create(track, a2 - 2 * P_width, P_width);
+track = mbc_circle_create(track, 0.5 * P_width, 0.5 * pi, P_width);
+track = mbc_track_display(track, 0.1, [ 0 a1total 0 a2total ]);
 path = track.center;
-% [track(1), width(1)] = mbc_teamchallenge_track(1);
-% [track, width] = mbc_teamchallenge_track(2);
-% path = track.center;
 
 %% Workspace variables for reference track generation in Simulink
 P_w_breakslen = uint32(length(path.points));

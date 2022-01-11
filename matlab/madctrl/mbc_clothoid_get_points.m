@@ -16,7 +16,7 @@ function points = mbc_clothoid_get_points(track, idx, xstart, dx, alpha)
 %   If alpha == 0 then the right line points are generated.
 %   If alpha == 0.5 then the center line points are generated.
 %   If alpha == 1 then the left line points are generated.
-%
+
     if nargin < 4
         alpha = 0.5; % return center line points
     end
@@ -26,8 +26,6 @@ function points = mbc_clothoid_get_points(track, idx, xstart, dx, alpha)
 
     idx = 0:floor((abs(t.xe) - (xstart - p.x) + mbc_cmp_eps)/dx);
     x = (xstart - p.x) + dx * idx;
-	
-	
 	
 	if t.opening ~= 1
 		psi = p.psi + (t.a * x.^2) / 2;
@@ -41,8 +39,6 @@ function points = mbc_clothoid_get_points(track, idx, xstart, dx, alpha)
         fun_sin = @(eps) sin((-t.a/2)*eps.^2 + t.a*eps*t.xe + p.psi);
 	end
 	
-% 	s1 = zeros(length(x) - 1);
-% 	s2 = zeros(length(x));
 	%computing point of clothoid
 	for i = 1:length(x)
 		s1(i) = p.s1 + integral(fun_cos, 0, x(i)) + cos(pi/2 + psi(i)) * (alpha - 0.5) * t.w;
