@@ -46,7 +46,7 @@ T = 316e-3; % plant time constant [ s ]
 % Gs = tf(k, [ T , 1 ]);
 
 %% controller parameters
-Tw = 1000e-3; % close-loop time constant [ s ]
+% Tw = 1000e-3; % close-loop time constant [ s ]
 P_kr = 0.3345;
 P_Ti = 0.2474;
 % Ti = T; % integral time constant by dynamic compensation [ s ]
@@ -65,11 +65,13 @@ delta_n = 0.7;
 v_max = 1;
 P_Tt = 0.1;
 P_T = T;
+
 un_max = 1;
 un_min = -1;
 
-%% Lateral Controller
-%% TODO
+%% Path Following Controller
+P_T_w = 0.3; %[s]
+P_v_fb_border = 0.1; %[m/s] singularity eliminator in Feed-back controller
 
 %% Create Race Track
 a1total = 2.7; % total surface width [ m ]
@@ -97,22 +99,23 @@ track = mbc_clothoid_create(track, P_a, pi/4, P_width, 1);
 track = mbc_track_display(track, 0.1, [ 0 a1total 0 a2total ]);
 path = track.center;
 
-%% Path for Lap Statistics
-lappath = track.center;
-P_lap_breakslen = uint32(length(lappath.points));
-P_lap_points = zeros(SPLINE.Elements(2).Dimensions);
-P_lap_points(:,1:length(lappath.points)) = lappath.points;
-P_lap_coefs = zeros(SPLINE.Elements(3).Dimensions);
-P_lap_coefs(1:length(lappath.pp.coefs),:) = lappath.pp.coefs;
-P_lap_segments = uint32(zeros(SPLINE.Elements(4).Dimensions));
+% % Path for Lap Statistics
+% lappath = track.center;
+% P_lap_breakslen = uint32(length(lappath.points));
+% P_lap_points = zeros(SPLINE.Elements(2).Dimensions);
+% P_lap_points(:,1:length(lappath.points)) = lappath.points;
+% P_lap_coefs = zeros(SPLINE.Elements(3).Dimensions);
+% P_lap_coefs(1:length(lappath.pp.coefs),:) = lappath.pp.coefs;
+% P_lap_segments = uint32(zeros(SPLINE.Elements(4).Dimensions));
 
 %% Workspace variables for reference track generation in Simulink
 P_w_breakslen = uint32(length(path.points));
 P_w_points = zeros(SPLINE.Elements(2).Dimensions); 
 P_w_points(:,1:length(path.points)) = path.points;
-P_w_coefs = zeros(SPLINE.Elements(3).Dimensions);
-P_w_coefs(1:length(path.pp.coefs),:) = path.pp.coefs;
+P_w_ppcoefs = zeros(SPLINE.Elements(3).Dimensions);
+P_w_ppcoefs(1:length(path.pp.coefs),:) = path.pp.coefs;
 P_w_segments = uint32(zeros(SPLINE.Elements(4).Dimensions)); 
+P_w_periodic = track.periodic;
 
 % Init car display
 mbc_car_display(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
