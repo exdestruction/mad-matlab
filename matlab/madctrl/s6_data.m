@@ -40,37 +40,43 @@ P_dt = 20e-3; % sample time of controller
 P_sim_dt = 2e-3; % sample time of simulation
 P_display_dt = 40e-3; % sample time of display
 
-%% Speed Controller parameters
-% plant
-P_ku = 2.51; % plant gain [m/s]
+%% plant parameters
+P_Tt = 0.1; %dead time [s]
 P_T = 316e-3; % plant time constant [s]
-P_Tt = 0.1; %dead time of motorelectronics and transmission [s]
+P_ku = 2.51; % plant gain [m/s]
 
-%PI controller design
-P_Tm = 1000e-3; % close-loop time constant [s]
-P_phires_arc = 65/360*2*pi; % phase margin [°]
-P_omega_d = pi/P_Tm; %crossover frequency [rad/s]
-P_Ta=0.02; %sample time [s]
 
-% integral time constant by dynamic compensation [ s ]
-P_Ti = (tan(P_phires_arc - pi + P_Tt*P_omega_d) * P_T * P_omega_d - 1)/...
-    (P_T*P_omega_d^2 + tan(P_phires_arc - pi + P_Tt*P_omega_d) * P_omega_d ); 
-% controller gain [ s/m ]
-P_kr = 1/P_ku * sqrt(P_Ti^2*P_omega_d^2 + P_T^2*P_Ti^2*P_omega_d^4) /...
-    sqrt(1 + P_Ti^2*P_omega_d^2); 
+%% Speed Controller parameters
 
-%Limitation of motor voltage to [-1...1]
+% motor voltage limits
 P_un_max=1;
 P_un_min=-1;
 
 %Target speed [m/s]
-P_vTarget = 1.5;
+P_vTarget = 1;
+
+%PI controller design
+P_Tm = 1000e-3; % close-loop time constant [s]
+P_omega_d = pi/P_Tm; %crossover frequency [rad/s]
+P_phi_res = 2*pi*65/360; % phase margin [°]
+
+P_Ta=0.02; %sample time controller[s]
+
+% integral time constant by dynamic compensation [ s ]
+P_Ti = tan(P_phi_res - pi/2 + P_omega_d*P_Tt + atan(P_omega_d*P_T)) / ...
+    P_omega_d;
+
+% calculation of controller gain [ s/m ]
+P_kr = sqrt((P_omega_d^2*P_T*P_Ti)^2 + (P_omega_d*P_Ti)^2) / ...
+    (sqrt(1+(P_omega_d*P_Ti)^2) * P_ku);
+
 
 %% Lateral Controller
-%% 
+
 P_Tw = 300e-3; %Time constant of FeedbackController
-P_dn_max=1;
-P_dn_min=-1;
+P_delta_n_max=1;
+P_delta_n_min=-1;
+P_v_fb_border = 0.1; %[m/s] singularity eliminator in Feed-back controller
 
 %% Create Buga track
 a1total = 2.7; % total surface width [ m ]
@@ -86,35 +92,31 @@ closing=0; %closing clothoid
 
 track = mbc_track_create(a1boundary + P_width/2, a2total/2, -pi/2);
 
+% straight 2 + corner 1
 track = mbc_straight_create(track, (a2total/2 - a2boundary - P_width - 0.4275), P_width);
 track = mbc_clothoid_create(track, P_cloth_a, pi/4, P_width, closing);
 track = mbc_clothoid_create(track, P_cloth_a, pi/4, P_width, opening);
 
+% straight 2 + corner 2
 track = mbc_straight_create(track, (a1total - 2*a1boundary - 2*P_width - 2*0.4275), P_width);
 track = mbc_clothoid_create(track, P_cloth_a, pi/4, P_width, closing);
 track = mbc_clothoid_create(track, P_cloth_a, pi/4, P_width, opening);
 
+% straight 3 + corner 3
 track = mbc_straight_create(track, (a2total - 2*a2boundary - 2*P_width - 2*0.4275), P_width);
 track = mbc_clothoid_create(track, P_cloth_a, pi/4, P_width, closing);
 track = mbc_clothoid_create(track, P_cloth_a, pi/4, P_width, opening);
 
+% straight 4 + corner 4
 track = mbc_straight_create(track, (a1total - 2*a1boundary - 2*P_width - 2*0.4275), P_width);
 track = mbc_clothoid_create(track, P_cloth_a, pi/4, P_width, closing);
 track = mbc_clothoid_create(track, P_cloth_a, pi/4, P_width, opening);
 
+% straight 5
 track = mbc_straight_create(track, (a2total/2 - a2boundary - P_width - 0.4275), P_width);
 
 track = mbc_track_display(track, 0.1, [ 0 a1total 0 a2total ]);
 path = track.center;
-
-%% Path for Lap Statistics
-lappath = track.center;
-P_lap_breakslen = uint32(length(lappath.points));
-P_lap_points = zeros(SPLINE.Elements(2).Dimensions); 
-P_lap_points(:,1:length(lappath.points)) = lappath.points;
-P_lap_coefs = zeros(SPLINE.Elements(3).Dimensions);
-P_lap_coefs(1:length(lappath.pp.coefs),:) = lappath.pp.coefs;
-P_lap_segments = uint32(zeros(SPLINE.Elements(4).Dimensions)); 
 
 %% Workspace variables for reference track generation in Simulink
 P_w_breakslen = uint32(length(path.points));
