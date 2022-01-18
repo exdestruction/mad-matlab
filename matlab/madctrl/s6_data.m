@@ -53,7 +53,7 @@ P_un_max=1;
 P_un_min=-1;
 
 %Target speed [m/s]
-P_vTarget = 1;
+P_vTarget = 0.3;
 
 %PI controller design
 P_Tm = 1000e-3; % close-loop time constant [s]
@@ -126,7 +126,11 @@ P_w_coefs = zeros(SPLINE.Elements(3).Dimensions);
 P_w_coefs(1:length(path.pp.coefs),:) = path.pp.coefs;
 P_w_segments = uint32(zeros(SPLINE.Elements(4).Dimensions)); 
 
+
 % Init car display
-mbc_car_display(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+init_s1 = a1boundary + P_width/2;
+init_s2 = a2total/2;
+init_psi = -pi/2;
+mbc_car_display(0, a1boundary + P_width/2, a2total/2 , -pi/2, 0, 0, 0, 0, 0, 0, 0);
 
 
