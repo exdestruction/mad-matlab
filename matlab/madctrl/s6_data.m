@@ -53,7 +53,7 @@ P_un_max=1;
 P_un_min=-1;
 
 %Target speed [m/s]
-P_vTarget = 1;
+P_vTarget = 1.5;
 
 %PI controller design
 P_Tm = 1000e-3; % close-loop time constant [s]
@@ -117,6 +117,14 @@ track = mbc_straight_create(track, (a2total/2 - a2boundary - P_width - 0.4275), 
 
 track = mbc_track_display(track, 0.1, [ 0 a1total 0 a2total ]);
 path = track.center;
+
+
+%% Choose car starting position
+
+P_p_s10 = 1;  % s1 position [ m ] Carid 0
+P_p_s20 = 1;  % s2 position [ m ] Carid 0
+P_p_psi0 = 0; % yaw angle [ rad ] 
+    
 
 %% Workspace variables for reference track generation in Simulink
 P_w_breakslen = uint32(length(path.points));
